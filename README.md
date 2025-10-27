@@ -13,7 +13,7 @@
 
 ```bash
 # 1. 克隆项目
-git clone <your-repo-url>
+git clone https://github.com/jadenmong/akshare-mcp-server.git
 cd akshare-mcp-server
 
 # 2. 安装 Node.js 依赖
