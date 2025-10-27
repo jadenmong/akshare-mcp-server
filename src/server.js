@@ -294,7 +294,23 @@ try:
     elif hasattr(result, '__dict__'):
         result = result.__dict__
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    # 处理NaN值和日期类型，替换为null
+    def clean_nan(obj):
+        import math
+        from datetime import datetime, date
+        if isinstance(obj, dict):
+            return {k: clean_nan(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_nan(v) for v in obj]
+        elif isinstance(obj, float) and math.isnan(obj):
+            return None
+        elif isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        else:
+            return obj
+
+    cleaned_result = clean_nan(result)
+    print(json.dumps(cleaned_result, ensure_ascii=False, indent=2))
 
 except Exception as e:
     error_msg = str(e)
@@ -319,7 +335,7 @@ except Exception as e:
 
   async getStockRealtimeData(args) {
     const validated = StockRealtimeSchema.parse(args);
-    const result = await this.callAKShareAPI('stock_zh_a_spot_em', { symbol: validated.symbol });
+    const result = await this.callAKShareAPI('stock_zh_a_spot_em', {});
 
     return {
       content: [
@@ -347,7 +363,7 @@ except Exception as e:
 
   async getFuturesInfo(args) {
     const validated = FuturesInfoSchema.parse(args);
-    const result = await this.callAKShareAPI('futures_zh_spot', { symbol: validated.symbol, ...validated });
+    const result = await this.callAKShareAPI('futures_zh_spot', {});
 
     return {
       content: [
@@ -360,7 +376,7 @@ except Exception as e:
   }
 
   async getStockList(args) {
-    const result = await this.callAKShareAPI('stock_zh_a_spot_em', args);
+    const result = await this.callAKShareAPI('stock_zh_a_spot_em', {});
 
     return {
       content: [
@@ -373,7 +389,7 @@ except Exception as e:
   }
 
   async getFundList(args) {
-    const result = await this.callAKShareAPI('fund_etf_category_em', args);
+    const result = await this.callAKShareAPI('fund_etf_category_em', {});
 
     return {
       content: [
@@ -386,7 +402,7 @@ except Exception as e:
   }
 
   async getEconomicData(args) {
-    const result = await this.callAKShareAPI('macro_china_gdp', args);
+    const result = await this.callAKShareAPI('macro_china_gdp', {});
 
     return {
       content: [
