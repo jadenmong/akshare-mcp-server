@@ -5,7 +5,6 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import axios from 'axios';
@@ -87,7 +86,7 @@ class AKShareMCPServer {
               },
               required: ['symbol']
             }
-          } as Tool,
+          },
           {
             name: 'get_stock_realtime_data',
             description: '获取股票实时数据',
@@ -101,7 +100,7 @@ class AKShareMCPServer {
               },
               required: ['symbol']
             }
-          } as Tool,
+          },
           {
             name: 'get_fund_info',
             description: '获取基金信息',
@@ -115,7 +114,7 @@ class AKShareMCPServer {
               },
               required: ['symbol']
             }
-          } as Tool,
+          },
           {
             name: 'get_futures_info',
             description: '获取期货信息',
@@ -133,7 +132,7 @@ class AKShareMCPServer {
               },
               required: ['symbol']
             }
-          } as Tool,
+          },
           {
             name: 'get_stock_list',
             description: '获取股票列表',
@@ -148,7 +147,7 @@ class AKShareMCPServer {
                 }
               }
             }
-          } as Tool,
+          },
           {
             name: 'get_fund_list',
             description: '获取基金列表',
@@ -163,7 +162,7 @@ class AKShareMCPServer {
                 }
               }
             }
-          } as Tool,
+          },
           {
             name: 'get_economic_data',
             description: '获取宏观经济数据',
@@ -185,7 +184,7 @@ class AKShareMCPServer {
               },
               required: ['indicator']
             }
-          } as Tool
+          }
         ],
       };
     });
