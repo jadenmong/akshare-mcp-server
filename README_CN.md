@@ -1,15 +1,15 @@
-# AKShare MCP Server
+# AKShare MCP 服务器
 
 [English](./README.md) | [中文版](./README_CN.md)
 
-基于 AKShare 的金融数据 MCP (Model Context Protocol) 服务器，为 AI 助手提供强大的金融数据获取能力。
+基于 AKShare 的强大金融数据 MCP（模型上下文协议）服务器，为 AI 助手提供全面的金融数据检索能力。
 
 ## 🚀 快速开始
 
 ### 环境要求
 
 - **Node.js**: 18.0.0 或更高版本
-- **Python**: 3.8 或更高版本
+- **Python**: 3.8 或更高版本（仅 Python 版本需要）
 
 ### 安装步骤
 
@@ -21,12 +21,25 @@ cd akshare-mcp-server
 # 2. 安装 Node.js 依赖
 npm install
 
-# 3. 安装 Python 依赖
-pip install -r requirements.txt
-
-# 4. 启动服务器
+# 3. 启动服务器（HTTP 版本，推荐 - 无需 Python 依赖）
 npm start
+
+# 或者启动 Python 版本（需要安装 Python 和 akshare）
+npm run start:python
 ```
+
+### 版本说明
+
+**HTTP 版本（推荐）**:
+- ✅ 无需安装 Python 或 akshare
+- ✅ 基于 HTTP API，稳定可靠
+- ✅ 内置备用数据确保可用性
+- ✅ 部署简单
+
+**Python 版本**:
+- ✅ 数据更丰富完整
+- ❌ 需要本地 Python 环境
+- ❌ 依赖 akshare 库安装
 
 ## ⚙️ 配置
 
@@ -43,63 +56,61 @@ npm start
   "mcpServers": {
     "akshare": {
       "command": "node",
-      "args": ["E:\\akshare-mcp-server\\src\\server.js"],
+      "args": ["E:\\akshare-mcp-server\\src\\http-server.js"],
       "env": {},
-      "description": "AKShare 金融数据 MCP 服务器"
+      "description": "AKShare Financial Data MCP Server"
     }
   }
 }
 ```
 
-**注意**: 请将路径 `E:\\akshare-mcp-server\\src\\server.js` 修改为您实际的项目路径。
+**注意**: 请将路径 `E:\\akshare-mcp-server\\src\\http-server.js` 更新为您的实际项目路径。
 
 ## 📋 可用工具
 
-### 📈 股票数据
-- **历史行情**: `stock_zh_a_hist` - 获取A股历史数据
-- **实时行情**: `stock_zh_a_spot_em` - 获取A股实时行情
-- **股票筛选**: `stock_zh_a_filter_em` - A股数据筛选
-- **代码对照**: `stock_info_a_code_name_em` - 股票代码名称对照
+### 📈 股票数据（HTTP + Python 版本）
+- **历史数据**: `get_stock_historical_data` - 获取股票历史数据
+- **实时行情**: `get_stock_realtime_data` - 获取股票实时报价
+- **股票列表**: `get_stock_list` - 获取股票列表
 
-### 💰 基金数据
-- **ETF信息**: `fund_etf_basic_info_em` - ETF基本信息
-- **ETF分类**: `fund_etf_category_em` - ETF分类数据
-- **基金排行**: `fund_rank_em` - 基金排行榜
-- **持仓信息**: `fund_portfolio_em` - 基金持仓明细
+### 🔍 搜索工具（HTTP 版本新增）
+- **股票搜索**: `search_stock` - 搜索股票信息
 
-### 🏭 宏观经济
-- **GDP数据**: `macro_china_gdp` - 国内生产总值
-- **CPI数据**: `macro_china_cpi` - 居民消费价格指数
-- **PMI数据**: `macro_china_pmi` - 采购经理指数
-- **货币供应**: `macro_china_m2` - M2货币供应量
-- **利率数据**: `macro_china_interest_rate` - 利率数据
+### 💰 基金数据（HTTP + Python 版本）
+- **基金列表**: `get_fund_list` - 获取基金列表
 
-### 📊 期货数据
-- **实时行情**: `futures_zh_spot` - 期货实时行情
-- **历史数据**: `futures_zh_his` - 期货历史行情
-- **持仓排名**: `futures_position_rank_em` - 期货持仓排名
-- **库存数据**: `futures_inventory_shfe` - 交易所库存数据
+### 📊 期货数据（仅 Python 版本）
+- **期货信息**: `get_futures_info` - 获取期货市场数据
+
+### 🏭 经济数据（仅 Python 版本）
+- **经济指标**: `get_economic_data` - 获取宏观经济数据
+
+### 版本对比
+
+| 功能 | HTTP 版本 | Python 版本 |
+|------|-----------|-------------|
+| 股票历史数据 | ✅ | ✅ |
+| 股票实时数据 | ✅ | ✅ |
+| 股票列表 | ✅ | ✅ |
+| 股票搜索 | ✅ | ❌ |
+| 基金数据 | ✅ | ✅ |
+| 期货数据 | ❌ | ✅ |
+| 经济数据 | ❌ | ✅ |
 
 ## 🏗️ 项目结构
 
 ```
 akshare-mcp-server/
 ├── src/
-│   ├── server.js              # MCP 主服务器
-│   ├── index.js               # 工具模块统一导出
-│   ├── tools/                 # 金融数据工具模块
-│   │   ├── stock_tools.js     # 股票工具
-│   │   ├── fund_tools.js      # 基金工具
-│   │   ├── economic_tools.js  # 宏观经济工具
-│   │   └── futures_tools.js   # 期货工具
-│   └── utils/
-│       └── toolHelpers.js     # 工具辅助函数
+│   ├── server.js              # 基于 Python 的 MCP 服务器
+│   ├── http-server.js         # 基于 HTTP 的 MCP 服务器（推荐）
+│   └── tools/                 # 金融数据工具模块
 ├── test/
-│   └── test.js                # 测试文件
-├── python_bridge.py           # Python 桥接器
+│   └── test_client.js         # 测试客户端
 ├── requirements.txt           # Python 依赖
 ├── package.json               # Node.js 配置
-├── README.md                  # 项目文档
+├── README.md                  # 英文文档
+├── README_CN.md              # 中文文档
 └── LICENSE                    # 开源许可证
 ```
 
@@ -107,10 +118,10 @@ akshare-mcp-server/
 
 ### 股票数据示例
 
-#### 获取平安银行历史数据
+#### 获取股票历史数据
 ```json
 {
-  "name": "stock_zh_a_hist",
+  "name": "get_stock_historical_data",
   "arguments": {
     "symbol": "000001",
     "period": "daily",
@@ -124,69 +135,69 @@ akshare-mcp-server/
 #### 获取股票实时行情
 ```json
 {
-  "name": "stock_zh_a_spot_em",
+  "name": "get_stock_realtime_data",
   "arguments": {
     "symbol": "000001"
   }
 }
 ```
 
+#### 获取股票列表
+```json
+{
+  "name": "get_stock_list",
+  "arguments": {
+    "market": "all"
+  }
+}
+```
+
+#### 搜索股票
+```json
+{
+  "name": "search_stock",
+  "arguments": {
+    "keyword": "平安",
+    "market": "all"
+  }
+}
+```
+
 ### 基金数据示例
 
-#### 获取上证50ETF信息
+#### 获取基金列表
 ```json
 {
-  "name": "fund_etf_basic_info_em",
+  "name": "get_fund_list",
   "arguments": {
-    "symbol": "510050"
-  }
-}
-```
-
-#### 获取基金排行榜
-```json
-{
-  "name": "fund_rank_em",
-  "arguments": {
-    "type": "etf",
-    "period": "daily",
-    "limit": 20
-  }
-}
-```
-
-### 宏观经济数据示例
-
-#### 获取2023年GDP数据
-```json
-{
-  "name": "macro_china_gdp",
-  "arguments": {
-    "year": "2023"
-  }
-}
-```
-
-#### 获取最新CPI数据
-```json
-{
-  "name": "macro_china_cpi",
-  "arguments": {
-    "year": "2024",
-    "month": "01"
+    "type": "etf"
   }
 }
 ```
 
 ### 期货数据示例
 
-#### 获取黄金期货实时行情
+#### 获取期货信息
 ```json
 {
-  "name": "futures_zh_spot",
+  "name": "get_futures_info",
   "arguments": {
-    "symbol": "au",
+    "symbol": "ag",
     "exchange": "SHFE"
+  }
+}
+```
+
+### 经济数据示例
+
+#### 获取经济指标
+```json
+{
+  "name": "get_economic_data",
+  "arguments": {
+    "indicator": "GDP",
+    "start_date": "20240101",
+    "end_date": "20241231"
   }
 }
 ```
@@ -200,7 +211,11 @@ npm test
 
 ### 开发模式（自动重启）
 ```bash
+# HTTP 版本开发模式
 npm run dev
+
+# Python 版本开发模式
+npm run dev:python
 ```
 
 ## 🔍 故障排除
@@ -219,15 +234,15 @@ npm run dev
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
    ```
 
-3. **Claude Desktop 无法连接**
+3. **Claude Desktop 连接失败**
    - 检查配置文件路径是否正确
-   - 确认 server.js 文件路径是否存在
-   - 重启 Claude Desktop 应用
+   - 确认 http-server.js 文件路径存在
+   - 重启 Claude Desktop 应用程序
 
 4. **数据获取失败**
    - 检查网络连接
-   - 确认 AKShare 库是否正常工作
-   - 查看服务器日志输出
+   - 确认 HTTP API 或 AKShare 库正常工作
+   - 检查服务器日志输出
 
 ### 调试模式
 
@@ -263,4 +278,10 @@ DEBUG=akshare:* npm start
 如果您在使用过程中遇到问题，请：
 1. 查看本文档的故障排除部分
 2. 在 GitHub 上提交 Issue
-3. 检查 AKShare 官方文档
+3. 查阅 AKShare 官方文档
+
+## 📚 文档
+
+- 详细的中文文档请参阅本文档
+- 英文文档请参阅 [README.md](./README.md)
+- AKShare 原始文档请访问 [AKShare GitHub](https://github.com/akfamily/akshare)

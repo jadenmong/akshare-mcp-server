@@ -9,7 +9,7 @@ A powerful financial data MCP (Model Context Protocol) server based on AKShare, 
 ### Prerequisites
 
 - **Node.js**: 18.0.0 or higher
-- **Python**: 3.8 or higher
+- **Python**: 3.8 or higher (only required for Python version)
 
 ### Installation
 
@@ -21,12 +21,25 @@ cd akshare-mcp-server
 # 2. Install Node.js dependencies
 npm install
 
-# 3. Install Python dependencies
-pip install -r requirements.txt
-
-# 4. Start the server
+# 3. Start the server (HTTP version, recommended - no Python dependencies)
 npm start
+
+# Or start Python version (requires Python and akshare installation)
+npm run start:python
 ```
+
+### Version Information
+
+**HTTP Version (Recommended)**:
+- ✅ No Python or akshare installation required
+- ✅ Based on HTTP API, stable and reliable
+- ✅ Built-in fallback data ensures availability
+- ✅ Simple deployment
+
+**Python Version**:
+- ✅ More comprehensive and complete data
+- ❌ Requires local Python environment
+- ❌ Depends on akshare library installation
 
 ## ⚙️ Configuration
 
@@ -55,33 +68,42 @@ Add the following configuration to your Claude Desktop configuration file:
 
 ## 📋 Available Tools
 
-### 📈 Stock Data
-- **Historical Data**: `get_stock_historical_data` - Get A-share historical data
-- **Real-time Quotes**: `get_stock_realtime_data` - Get A-share real-time quotes
-- **Stock List**: `get_stock_list` - Get A-share stock list
+### 📈 Stock Data (HTTP + Python Versions)
+- **Historical Data**: `get_stock_historical_data` - Get stock historical data
+- **Real-time Quotes**: `get_stock_realtime_data` - Get stock real-time quotes
+- **Stock List**: `get_stock_list` - Get stock list
 
-### 💰 Fund Data
-- **Fund Information**: `get_fund_info` - Get fund basic information
+### 🔍 Search Tools (HTTP Version New)
+- **Stock Search**: `search_stock` - Search stock information
+
+### 💰 Fund Data (HTTP + Python Versions)
 - **Fund List**: `get_fund_list` - Get fund list
-- **Fund Rankings**: Fund performance rankings
 
-### 📊 Futures Data
+### 📊 Futures Data (Python Version Only)
 - **Futures Information**: `get_futures_info` - Get futures market data
-- **Real-time Quotes**: Real-time futures quotes
-- **Historical Data**: Futures historical data
 
-### 🏭 Economic Data
+### 🏭 Economic Data (Python Version Only)
 - **Economic Indicators**: `get_economic_data` - Get macroeconomic data
-- **GDP Data**: Gross Domestic Product
-- **CPI Data**: Consumer Price Index
-- **PMI Data**: Purchasing Managers' Index
+
+### Version Comparison
+
+| Feature | HTTP Version | Python Version |
+|---------|--------------|----------------|
+| Stock Historical Data | ✅ | ✅ |
+| Stock Real-time Data | ✅ | ✅ |
+| Stock List | ✅ | ✅ |
+| Stock Search | ✅ | ❌ |
+| Fund Data | ✅ | ✅ |
+| Futures Data | ❌ | ✅ |
+| Economic Data | ❌ | ✅ |
 
 ## 🏗️ Project Structure
 
 ```
 akshare-mcp-server/
 ├── src/
-│   ├── server.js              # Main MCP server
+│   ├── server.js              # Python-based MCP server
+│   ├── http-server.js         # HTTP-based MCP server (recommended)
 │   └── tools/                 # Financial data tool modules
 ├── test/
 │   └── test_client.js         # Test client

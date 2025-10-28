@@ -5,8 +5,10 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start": "node src/http-server.js",
+    "start:python": "node src/server.js",
+    "dev": "node --watch src/http-server.js",
+    "dev:python": "node --watch src/server.js",
     "test": "node test/test.js",
     "lint": "echo 'Linting not configured yet'",
     "format": "echo 'Formatting not configured yet'"

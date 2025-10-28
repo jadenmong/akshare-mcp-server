@@ -143,7 +143,12 @@ class AKShareMCPServer {
                   type: 'string',
                   enum: ['sh', 'sz', 'all'],
                   description: '市场：sh=上海，sz=深圳，all=全部',
-                  default: 'all'
+                  default: 'sh'
+                },
+                limit: {
+                  type: 'number',
+                  description: '返回数据条数限制，默认100条',
+                  default: 100
                 }
               }
             }
@@ -158,7 +163,12 @@ class AKShareMCPServer {
                   type: 'string',
                   enum: ['etf', 'lof', 'qfii', 'all'],
                   description: '基金类型',
-                  default: 'all'
+                  default: 'etf'
+                },
+                limit: {
+                  type: 'number',
+                  description: '返回数据条数限制，默认50条',
+                  default: 50
                 }
               }
             }
@@ -238,10 +248,19 @@ class AKShareMCPServer {
       const { spawn } = await import('child_process');
 
       return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('python', ['-c', this.generatePythonCode(functionName, params)]);
+        const pythonProcess = spawn('python', ['-c', this.generatePythonCode(functionName, params)], {
+          timeout: 30000, // 30秒超时
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
 
         let output = '';
         let errorOutput = '';
+
+        // 设置进程超时
+        const timeout = setTimeout(() => {
+          pythonProcess.kill('SIGTERM');
+          reject(new Error(`Python process timeout after 30 seconds for function: ${functionName}`));
+        }, 30000);
 
         pythonProcess.stdout.on('data', (data) => {
           output += data.toString();
@@ -251,17 +270,28 @@ class AKShareMCPServer {
           errorOutput += data.toString();
         });
 
+        pythonProcess.on('error', (error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Failed to start Python process: ${error.message}`));
+        });
+
         pythonProcess.on('close', (code) => {
+          clearTimeout(timeout);
+
           if (code !== 0) {
-            reject(new Error(`Python process failed: ${errorOutput}`));
+            reject(new Error(`Python process failed with code ${code}: ${errorOutput || 'Unknown error'}`));
             return;
           }
 
           try {
+            if (!output.trim()) {
+              reject(new Error('Python process returned empty output'));
+              return;
+            }
             const result = JSON.parse(output);
             resolve(result);
           } catch (e) {
-            reject(new Error(`Failed to parse Python output: ${e.message}`));
+            reject(new Error(`Failed to parse Python output: ${e.message}. Output: ${output.substring(0, 500)}...`));
           }
         });
       });
@@ -272,11 +302,17 @@ class AKShareMCPServer {
 
   generatePythonCode(functionName, params) {
     const paramStr = JSON.stringify(params, null, 2);
-    return `
-import sys
+    return `import sys
 import json
 import akshare as ak
 import pandas as pd
+import requests
+import warnings
+warnings.filterwarnings('ignore')
+
+# 设置请求超时和重试
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:
     func = getattr(ak, '${functionName}')
@@ -285,7 +321,15 @@ try:
     # 过滤掉 None 值
     filtered_params = {k: v for k, v in params.items() if v is not None}
 
+    # 增加请求超时设置
+    import socket
+    socket.setdefaulttimeout(15)
+
+    print(f"Calling ${functionName} with params: {filtered_params}", file=sys.stderr)
+
     result = func(**filtered_params)
+
+    print(f"Function ${functionName} completed successfully", file=sys.stderr)
 
     if hasattr(result, 'to_dict'):
         result = result.to_dict('records')
@@ -293,6 +337,11 @@ try:
         result = result.to_json()
     elif hasattr(result, '__dict__'):
         result = result.__dict__
+
+    # 限制大数据集的输出
+    if isinstance(result, list) and len(result) > 1000:
+        print(f"Warning: Large dataset detected, truncating to 1000 items", file=sys.stderr)
+        result = result[:1000]
 
     # 处理NaN值和日期类型，替换为null
     def clean_nan(obj):
@@ -310,10 +359,18 @@ try:
             return obj
 
     cleaned_result = clean_nan(result)
-    print(json.dumps(cleaned_result, ensure_ascii=False, indent=2))
+    print(json.dumps(cleaned_result, ensure_ascii=False, separators=(',', ':')))
 
+except requests.exceptions.Timeout as e:
+    error_msg = f"Request timeout: {str(e)}"
+    print(json.dumps({"error": error_msg}), file=sys.stderr)
+    sys.exit(1)
+except requests.exceptions.ConnectionError as e:
+    error_msg = f"Connection error: {str(e)}"
+    print(json.dumps({"error": error_msg}), file=sys.stderr)
+    sys.exit(1)
 except Exception as e:
-    error_msg = str(e)
+    error_msg = f"Unexpected error: {type(e).__name__}: {str(e)}"
     print(json.dumps({"error": error_msg}), file=sys.stderr)
     sys.exit(1)
 `;
@@ -376,29 +433,131 @@ except Exception as e:
   }
 
   async getStockList(args) {
-    const result = await this.callAKShareAPI('stock_zh_a_spot_em', {});
+    const { market = 'sh', limit = 100 } = args;
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `获取股票列表成功：\n\n${JSON.stringify(result, null, 2)}`
+    // 根据市场选择不同的 AKShare API，使用更稳定的API
+    let apiFunction;
+    let apiParams = {};
+
+    switch (market) {
+      case 'sh':
+        apiFunction = 'stock_sh_a_spot_em';
+        break;
+      case 'sz':
+        apiFunction = 'stock_sz_a_spot_em';
+        break;
+      case 'all':
+      default:
+        // 使用分页获取数据的API，避免一次性获取大量数据
+        apiFunction = 'stock_zh_a_spot_em';
+        apiParams = { 'page': 1, 'page_size': Math.min(limit, 200) };
+        break;
+    }
+
+    try {
+      const result = await this.callAKShareAPI(apiFunction, apiParams);
+
+      // 限制返回数据条数
+      let limitedResult = result;
+      if (Array.isArray(result) && result.length > limit) {
+        limitedResult = result.slice(0, limit);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `获取股票列表成功（市场：${market}，限制：${limit}条，实际：${Array.isArray(limitedResult) ? limitedResult.length : 'unknown'}条）：\n\n${JSON.stringify(limitedResult, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      // 如果主API失败，尝试备用方案
+      try {
+        console.error(`Main API failed, trying backup: ${error.message}`);
+        const backupResult = await this.callAKShareAPI('stock_info_sz_name_code', {});
+
+        // 限制返回数据条数
+        let limitedBackupResult = backupResult;
+        if (Array.isArray(backupResult) && backupResult.length > limit) {
+          limitedBackupResult = backupResult.slice(0, limit);
         }
-      ]
-    };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `获取股票列表成功（使用备用方案，市场：${market}，限制：${limit}条，实际：${Array.isArray(limitedBackupResult) ? limitedBackupResult.length : 'unknown'}条）：\n\n${JSON.stringify(limitedBackupResult, null, 2)}`
+            }
+          ]
+        };
+      } catch (backupError) {
+        throw new Error(`无法获取股票列表，主API错误：${error.message}，备用API错误：${backupError.message}`);
+      }
+    }
   }
 
   async getFundList(args) {
-    const result = await this.callAKShareAPI('fund_etf_category_em', {});
+    const { type = 'etf', limit = 50 } = args;
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `获取基金列表成功：\n\n${JSON.stringify(result, null, 2)}`
+    let apiFunction;
+    switch (type) {
+      case 'etf':
+        apiFunction = 'fund_etf_category_sina';
+        break;
+      case 'lof':
+        apiFunction = 'fund_portfolio_lof_hist';
+        break;
+      case 'qfii':
+        apiFunction = 'fund_qfii_em';
+        break;
+      case 'all':
+      default:
+        apiFunction = 'fund_etf_category_sina';
+        break;
+    }
+
+    try {
+      const result = await this.callAKShareAPI(apiFunction, {});
+
+      // 限制返回数据条数
+      let limitedResult = result;
+      if (Array.isArray(result) && result.length > limit) {
+        limitedResult = result.slice(0, limit);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `获取基金列表成功（类型：${type}，限制：${limit}条，实际：${Array.isArray(limitedResult) ? limitedResult.length : 'unknown'}条）：\n\n${JSON.stringify(limitedResult, null, 2)}`
+          }
+        ]
+      };
+    } catch (error) {
+      // 如果主API失败，尝试备用方案
+      try {
+        console.error(`Main fund API failed, trying backup: ${error.message}`);
+        const backupResult = await this.callAKShareAPI('fund_etf_spot_em', {});
+
+        // 限制返回数据条数
+        let limitedBackupResult = backupResult;
+        if (Array.isArray(backupResult) && backupResult.length > limit) {
+          limitedBackupResult = backupResult.slice(0, limit);
         }
-      ]
-    };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `获取基金列表成功（使用备用方案，类型：${type}，限制：${limit}条，实际：${Array.isArray(limitedBackupResult) ? limitedBackupResult.length : 'unknown'}条）：\n\n${JSON.stringify(limitedBackupResult, null, 2)}`
+            }
+          ]
+        };
+      } catch (backupError) {
+        throw new Error(`无法获取基金列表，主API错误：${error.message}，备用API错误：${backupError.message}`);
+      }
+    }
   }
 
   async getEconomicData(args) {
@@ -421,6 +580,14 @@ except Exception as e:
   }
 }
 
-// Start the server
-const server = new AKShareMCPServer();
-server.run().catch(console.error);
+// 如果直接运行此文件，启动服务器
+const isMainModule = import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}` ||
+                     import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`;
+
+if (isMainModule) {
+  const server = new AKShareMCPServer();
+  server.run().catch(console.error);
+}
+
+// 导出类供测试使用
+export { AKShareMCPServer };
