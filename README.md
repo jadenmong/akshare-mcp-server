@@ -1,36 +1,38 @@
 # AKShare MCP Server
 
-基于 AKShare 的金融数据 MCP (Model Context Protocol) 服务器，为 AI 助手提供强大的金融数据获取能力。
+[English](./README.md) | [中文版](./README_CN.md)
 
-## 🚀 快速开始
+A powerful financial data MCP (Model Context Protocol) server based on AKShare, providing AI assistants with comprehensive financial data retrieval capabilities.
 
-### 环境要求
+## 🚀 Quick Start
 
-- **Node.js**: 18.0.0 或更高版本
-- **Python**: 3.8 或更高版本
+### Prerequisites
 
-### 安装步骤
+- **Node.js**: 18.0.0 or higher
+- **Python**: 3.8 or higher
+
+### Installation
 
 ```bash
-# 1. 克隆项目
+# 1. Clone the project
 git clone https://github.com/jadenmong/akshare-mcp-server.git
 cd akshare-mcp-server
 
-# 2. 安装 Node.js 依赖
+# 2. Install Node.js dependencies
 npm install
 
-# 3. 安装 Python 依赖
+# 3. Install Python dependencies
 pip install -r requirements.txt
 
-# 4. 启动服务器
+# 4. Start the server
 npm start
 ```
 
-## ⚙️ 配置
+## ⚙️ Configuration
 
-### Claude Desktop 配置
+### Claude Desktop Configuration
 
-将以下配置添加到 Claude Desktop 的配置文件中：
+Add the following configuration to your Claude Desktop configuration file:
 
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -43,72 +45,61 @@ npm start
       "command": "node",
       "args": ["E:\\akshare-mcp-server\\src\\server.js"],
       "env": {},
-      "description": "AKShare 金融数据 MCP 服务器"
+      "description": "AKShare Financial Data MCP Server"
     }
   }
 }
 ```
 
-**注意**: 请将路径 `E:\\akshare-mcp-server\\src\\server.js` 修改为您实际的项目路径。
+**Note**: Please update the path `E:\\akshare-mcp-server\\src\\server.js` to your actual project path.
 
-## 📋 可用工具
+## 📋 Available Tools
 
-### 📈 股票数据
-- **历史行情**: `stock_zh_a_hist` - 获取A股历史数据
-- **实时行情**: `stock_zh_a_spot_em` - 获取A股实时行情
-- **股票筛选**: `stock_zh_a_filter_em` - A股数据筛选
-- **代码对照**: `stock_info_a_code_name_em` - 股票代码名称对照
+### 📈 Stock Data
+- **Historical Data**: `get_stock_historical_data` - Get A-share historical data
+- **Real-time Quotes**: `get_stock_realtime_data` - Get A-share real-time quotes
+- **Stock List**: `get_stock_list` - Get A-share stock list
 
-### 💰 基金数据
-- **ETF信息**: `fund_etf_basic_info_em` - ETF基本信息
-- **ETF分类**: `fund_etf_category_em` - ETF分类数据
-- **基金排行**: `fund_rank_em` - 基金排行榜
-- **持仓信息**: `fund_portfolio_em` - 基金持仓明细
+### 💰 Fund Data
+- **Fund Information**: `get_fund_info` - Get fund basic information
+- **Fund List**: `get_fund_list` - Get fund list
+- **Fund Rankings**: Fund performance rankings
 
-### 🏭 宏观经济
-- **GDP数据**: `macro_china_gdp` - 国内生产总值
-- **CPI数据**: `macro_china_cpi` - 居民消费价格指数
-- **PMI数据**: `macro_china_pmi` - 采购经理指数
-- **货币供应**: `macro_china_m2` - M2货币供应量
-- **利率数据**: `macro_china_interest_rate` - 利率数据
+### 📊 Futures Data
+- **Futures Information**: `get_futures_info` - Get futures market data
+- **Real-time Quotes**: Real-time futures quotes
+- **Historical Data**: Futures historical data
 
-### 📊 期货数据
-- **实时行情**: `futures_zh_spot` - 期货实时行情
-- **历史数据**: `futures_zh_his` - 期货历史行情
-- **持仓排名**: `futures_position_rank_em` - 期货持仓排名
-- **库存数据**: `futures_inventory_shfe` - 交易所库存数据
+### 🏭 Economic Data
+- **Economic Indicators**: `get_economic_data` - Get macroeconomic data
+- **GDP Data**: Gross Domestic Product
+- **CPI Data**: Consumer Price Index
+- **PMI Data**: Purchasing Managers' Index
 
-## 🏗️ 项目结构
+## 🏗️ Project Structure
 
 ```
 akshare-mcp-server/
 ├── src/
-│   ├── server.js              # MCP 主服务器
-│   ├── index.js               # 工具模块统一导出
-│   ├── tools/                 # 金融数据工具模块
-│   │   ├── stock_tools.js     # 股票工具
-│   │   ├── fund_tools.js      # 基金工具
-│   │   ├── economic_tools.js  # 宏观经济工具
-│   │   └── futures_tools.js   # 期货工具
-│   └── utils/
-│       └── toolHelpers.js     # 工具辅助函数
+│   ├── server.js              # Main MCP server
+│   └── tools/                 # Financial data tool modules
 ├── test/
-│   └── test.js                # 测试文件
-├── python_bridge.py           # Python 桥接器
-├── requirements.txt           # Python 依赖
-├── package.json               # Node.js 配置
-├── README.md                  # 项目文档
-└── LICENSE                    # 开源许可证
+│   └── test_client.js         # Test client
+├── requirements.txt           # Python dependencies
+├── package.json               # Node.js configuration
+├── README.md                  # English documentation
+├── README_CN.md              # Chinese documentation
+└── LICENSE                    # Open source license
 ```
 
-## 📝 使用示例
+## 📝 Usage Examples
 
-### 股票数据示例
+### Stock Data Examples
 
-#### 获取平安银行历史数据
+#### Get Stock Historical Data
 ```json
 {
-  "name": "stock_zh_a_hist",
+  "name": "get_stock_historical_data",
   "arguments": {
     "symbol": "000001",
     "period": "daily",
@@ -119,146 +110,150 @@ akshare-mcp-server/
 }
 ```
 
-#### 获取股票实时行情
+#### Get Stock Real-time Quotes
 ```json
 {
-  "name": "stock_zh_a_spot_em",
+  "name": "get_stock_realtime_data",
   "arguments": {
     "symbol": "000001"
   }
 }
 ```
 
-### 基金数据示例
-
-#### 获取上证50ETF信息
+#### Get Stock List
 ```json
 {
-  "name": "fund_etf_basic_info_em",
+  "name": "get_stock_list",
+  "arguments": {
+    "market": "all"
+  }
+}
+```
+
+### Fund Data Examples
+
+#### Get Fund Information
+```json
+{
+  "name": "get_fund_info",
   "arguments": {
     "symbol": "510050"
   }
 }
 ```
 
-#### 获取基金排行榜
+#### Get Fund List
 ```json
 {
-  "name": "fund_rank_em",
+  "name": "get_fund_list",
   "arguments": {
-    "type": "etf",
-    "period": "daily",
-    "limit": 20
+    "type": "etf"
   }
 }
 ```
 
-### 宏观经济数据示例
+### Futures Data Examples
 
-#### 获取2023年GDP数据
+#### Get Futures Information
 ```json
 {
-  "name": "macro_china_gdp",
+  "name": "get_futures_info",
   "arguments": {
-    "year": "2023"
-  }
-}
-```
-
-#### 获取最新CPI数据
-```json
-{
-  "name": "macro_china_cpi",
-  "arguments": {
-    "year": "2024",
-    "month": "01"
-  }
-}
-```
-
-### 期货数据示例
-
-#### 获取黄金期货实时行情
-```json
-{
-  "name": "futures_zh_spot",
-  "arguments": {
-    "symbol": "au",
+    "symbol": "ag",
     "exchange": "SHFE"
   }
 }
 ```
 
-## 🔧 开发和测试
+### Economic Data Examples
 
-### 运行测试
+#### Get Economic Indicators
+```json
+{
+  "name": "get_economic_data",
+  "arguments": {
+    "indicator": "GDP",
+    "start_date": "20240101",
+    "end_date": "20241231"
+  }
+}
+```
+
+## 🔧 Development and Testing
+
+### Run Tests
 ```bash
 npm test
 ```
 
-### 开发模式（自动重启）
+### Development Mode (with auto-restart)
 ```bash
 npm run dev
 ```
 
-## 🔍 故障排除
+## 🔍 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **Node.js 版本过低**
+1. **Node.js Version Too Low**
    ```
-   错误: Node.js 版本需要 18.0.0 或更高
-   解决: 升级 Node.js 到最新 LTS 版本
+   Error: Node.js version 18.0.0 or higher required
+   Solution: Upgrade Node.js to the latest LTS version
    ```
 
-2. **Python 依赖安装失败**
+2. **Python Dependencies Installation Failed**
    ```bash
-   # 尝试使用国内镜像
+   # Try using a domestic mirror
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
    ```
 
-3. **Claude Desktop 无法连接**
-   - 检查配置文件路径是否正确
-   - 确认 server.js 文件路径是否存在
-   - 重启 Claude Desktop 应用
+3. **Claude Desktop Connection Failed**
+   - Check if the configuration file path is correct
+   - Confirm that the server.js file path exists
+   - Restart the Claude Desktop application
 
-4. **数据获取失败**
-   - 检查网络连接
-   - 确认 AKShare 库是否正常工作
-   - 查看服务器日志输出
+4. **Data Retrieval Failed**
+   - Check network connection
+   - Confirm AKShare library is working properly
+   - Check server log output
 
-### 调试模式
+### Debug Mode
 
-启动服务器时查看详细日志：
+Start the server with detailed logging:
 ```bash
 DEBUG=akshare:* npm start
 ```
 
-## 🔧 技术特点
+## 🔧 Technical Features
 
-- ⚡ **高性能**: 异步处理，支持并发请求
-- 🛡️ **类型安全**: 使用 Zod 进行严格的参数验证
-- 🌉 **Python 桥接**: 通过子进程调用 AKShare 库
-- 🔧 **模块化设计**: 按金融产品类别组织工具
-- 📊 **数据标准化**: 统一的数据格式和错误处理
-- 🚀 **易于扩展**: 简单的工具定义和添加机制
+- ⚡ **High Performance**: Asynchronous processing with concurrent request support
+- 🛡️ **Type Safety**: Strict parameter validation using Zod
+- 🌉 **Python Bridge**: Call AKShare library through subprocess
+- 🔧 **Modular Design**: Tools organized by financial product category
+- 📊 **Data Standardization**: Unified data format and error handling
+- 🚀 **Easy to Extend**: Simple tool definition and addition mechanism
 
-## 📄 许可证
+## 📄 License
 
-本项目基于 MIT 许可证开源。
+This project is open source under the MIT License.
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-- [AKShare](https://github.com/akfamily/akshare) - 提供强大的金融数据接口库
-- [Model Context Protocol](https://modelcontextprotocol.io/) - 提供标准化工具接口协议
+- [AKShare](https://github.com/akfamily/akshare) - Powerful financial data API library
+- [Model Context Protocol](https://modelcontextprotocol.io/) - Standardized tool interface protocol
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目！
+Welcome to submit Issues and Pull Requests to improve this project!
 
-## 📞 支持
+## 📞 Support
 
-如果您在使用过程中遇到问题，请：
-1. 查看本文档的故障排除部分
-2. 在 GitHub 上提交 Issue
-3. 检查 AKShare 官方文档
+If you encounter issues during use, please:
+1. Check the troubleshooting section of this documentation
+2. Submit an Issue on GitHub
+3. Check the AKShare official documentation
+
+## 📚 Documentation
+
+- For detailed documentation in Chinese, see [README_CN.md](./README_CN.md)
+- For the original AKShare documentation, visit [AKShare GitHub](https://github.com/akfamily/akshare)
